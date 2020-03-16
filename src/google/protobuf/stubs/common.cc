@@ -46,7 +46,7 @@
 #define snprintf _snprintf    // see comment in strutil.cc
 #elif defined(HAVE_PTHREAD)
 #include <pthread.h>
-#else
+#elif !defined(GOOGLE_PROTOBUF_NO_THREADS)
 #error "No suitable threading library available."
 #endif
 #if defined(__ANDROID__)

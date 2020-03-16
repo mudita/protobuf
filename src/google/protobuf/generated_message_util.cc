@@ -789,6 +789,10 @@ void InitSCC_DFS(SCCInfoBase* scc) {
 }  // namespace
 
 void InitSCCImpl(SCCInfoBase* scc) {
+#ifdef GOOGLE_PROTOBUF_NO_THREADS
+  InitProtobufDefaults();
+  InitSCC_DFS(scc);
+#else // #ifdef GOOGLE_PROTOBUF_NO_THREADS
   static WrappedMutex mu{GOOGLE_PROTOBUF_LINKER_INITIALIZED};
   // Either the default in case no initialization is running or the id of the
   // thread that is currently initializing.
@@ -824,6 +828,7 @@ void InitSCCImpl(SCCInfoBase* scc) {
 #endif  // #ifndef GOOGLE_PROTOBUF_SUPPORT_WINDOWS_XP
 
   mu.Unlock();
+#endif // #ifdef GOOGLE_PROTOBUF_NO_THREADS
 }
 
 }  // namespace internal

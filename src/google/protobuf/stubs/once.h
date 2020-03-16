@@ -40,12 +40,28 @@ namespace google {
 namespace protobuf {
 namespace internal {
 
+#ifdef GOOGLE_PROTOBUF_NO_THREADS
+
+using once_flag = bool;
+template <typename Callable, typename... Args>
+void call_once(once_flag& flag, Callable&& f, Args&&... args ) {
+    if (flag) {
+        return;
+    }
+
+    flag = true;
+    std::__invoke(std::forward<Callable>(f), std::forward<Args>(args) ...);
+}
+
+#else
+
 using once_flag = std::once_flag;
 template <typename... Args>
 void call_once(Args&&... args ) {
   std::call_once(std::forward<Args>(args)...);
 }
 
+#endif
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google

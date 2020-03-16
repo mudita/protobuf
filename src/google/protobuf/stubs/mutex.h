@@ -69,6 +69,14 @@ namespace internal {
 
 #define GOOGLE_PROTOBUF_LINKER_INITIALIZED
 
+#ifdef GOOGLE_PROTOBUF_NO_THREADS
+class DummyMutex {
+    public:
+        void lock() {};
+        void unlock() {};
+};
+#endif // #ifdef GOOGLE_PROTOBUF_NO_THREADS
+
 #ifdef GOOGLE_PROTOBUF_SUPPORT_WINDOWS_XP
 
 // This class is a lightweight replacement for std::mutex on Windows platforms.
@@ -103,11 +111,15 @@ class GOOGLE_PROTOBUF_CAPABILITY("mutex") PROTOBUF_EXPORT WrappedMutex {
   void AssertHeld() const {}
 
  private:
+#ifdef GOOGLE_PROTOBUF_NO_THREADS
+  DummyMutex mu_;
+#else // #ifdef GOOGLE_PROTOBUFS_NO_THREADS
 #ifndef GOOGLE_PROTOBUF_SUPPORT_WINDOWS_XP
   std::mutex mu_;
 #else  // ifndef GOOGLE_PROTOBUF_SUPPORT_WINDOWS_XP
   CriticalSectionLock mu_;
 #endif  // #ifndef GOOGLE_PROTOBUF_SUPPORT_WINDOWS_XP
+#endif // #ifdef GOOGLE_PROTOBUF_NO_THREADS
 };
 
 using Mutex = WrappedMutex;
