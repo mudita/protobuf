@@ -37,10 +37,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES Intel)
 endif()
 
 # Options
-option(protobuf_BUILD_TESTS "Build tests" ON)
+option(protobuf_DISABLE_THREAD_SUPPORT "Disable multi-thread support" ON)
+option(protobuf_BUILD_TESTS "Build tests" OFF)
 option(protobuf_BUILD_CONFORMANCE "Build conformance tests" OFF)
 option(protobuf_BUILD_EXAMPLES "Build examples" OFF)
-option(protobuf_BUILD_PROTOC_BINARIES "Build libprotoc and protoc compiler" ON)
+option(protobuf_BUILD_PROTOC_BINARIES "Build libprotoc and protoc compiler" OFF)
 if (BUILD_SHARED_LIBS)
   set(protobuf_BUILD_SHARED_LIBS_DEFAULT ON)
 else (BUILD_SHARED_LIBS)
@@ -50,7 +51,7 @@ option(protobuf_BUILD_SHARED_LIBS "Build Shared Libraries" ${protobuf_BUILD_SHAR
 include(CMakeDependentOption)
 cmake_dependent_option(protobuf_MSVC_STATIC_RUNTIME "Link static runtime libraries" ON
   "NOT protobuf_BUILD_SHARED_LIBS" OFF)
-set(protobuf_WITH_ZLIB_DEFAULT ON)
+set(protobuf_WITH_ZLIB_DEFAULT OFF)
 option(protobuf_WITH_ZLIB "Build with zlib support" ${protobuf_WITH_ZLIB_DEFAULT})
 set(protobuf_DEBUG_POSTFIX "d"
   CACHE STRING "Default debug postfix")
@@ -109,10 +110,12 @@ endif()
 
 add_definitions(-DGOOGLE_PROTOBUF_CMAKE_BUILD)
 
-find_package(Threads REQUIRED)
-if (CMAKE_USE_PTHREADS_INIT)
-  add_definitions(-DHAVE_PTHREAD)
-endif (CMAKE_USE_PTHREADS_INIT)
+if(NOT protobuf_DISABLE_THREAD_SUPPORT)
+  find_package(Threads REQUIRED)
+  if (CMAKE_USE_PTHREADS_INIT)
+    add_definitions(-DHAVE_PTHREAD)
+  endif (CMAKE_USE_PTHREADS_INIT)
+endif()
 
 set(_protobuf_FIND_ZLIB)
 if (protobuf_WITH_ZLIB)
@@ -242,6 +245,11 @@ endif (protobuf_UNICODE)
 
 include(libprotobuf-lite.cmake)
 include(libprotobuf.cmake)
+if(protobuf_DISABLE_THREAD_SUPPORT)
+  target_compile_definitions(libprotobuf PUBLIC -DGOOGLE_PROTOBUF_NO_THREADS=1)
+  target_compile_definitions(libprotobuf-lite PUBLIC -DGOOGLE_PROTOBUF_NO_THREADS=1)
+endif()
+
 if (protobuf_BUILD_PROTOC_BINARIES)
   include(libprotoc.cmake)
   include(protoc.cmake)
